@@ -50,6 +50,29 @@ describe('GET - TESTES API (POSITIVOS) - HUB DE LEITURA', () => {
       expect(response.body.book.title).to.equal('Harry Potter e a Pedra Filosofal')
     })
   });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR LISTAR UM LIVRO INEXISTENTE', () => {
+    cy.api({
+      method: 'GET',
+      url: 'books/66',
+      failOnStatusCode: false
+    }).should(response => {
+      expect(response.status).to.equal(404)
+      expect(response.body).to.have.property('message')
+    })
+  });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR LISTAR UM ID INVÁLIDO.', () => {
+    cy.api({
+      method: 'GET',
+      url: 'books/a',
+      failOnStatusCode: false
+    }).should(response => {
+      expect(response.status).to.equal(400)
+      expect(response.body).to.have.property('message')
+    })
+  });
+
 });
 
 describe('POST - TESTE API (POSITIVOS) - HUB DE LEITURA', () => {
@@ -72,6 +95,38 @@ describe('POST - TESTE API (POSITIVOS) - HUB DE LEITURA', () => {
       }
     }).should(response => {
       expect(response.status).to.equal(201)
+      expect(response.body).to.have.property('message')
+    })
+  });
+
+  it.only('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO JÁ EXISTENTE', () => {
+    cy.api({
+      method: 'POST',
+      url: 'books',
+      headers: { 'Authorization': token },
+      body: {
+
+
+      }
+    }).should(response => {
+      expect(response.status).to.equal(400)
+      expect(response.body).to.have.property('message')
+    })
+  });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO SEM AUTORIZAÇÃO', () => {
+    cy.api({
+      method: 'POST',
+      url: 'books',
+      headers: { 'Authorization': token },
+      body: {
+        title: "Jardim de Iracema",
+        author: "José de Alencar",
+        category: "Literatura Brasileira",
+        total_copies: 2
+      }
+    }).should(response => {
+      expect(response.status).to.equal(403)
       expect(response.body).to.have.property('message')
     })
   });
