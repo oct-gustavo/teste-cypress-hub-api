@@ -8,7 +8,7 @@ beforeEach(() => {
   })
 });
 
-describe('GET - TESTES API (POSITIVOS) - HUB DE LEITURA', () => {
+describe('GET - TESTES API - HUB DE LEITURA', () => {
 
   it('CENÁRIO POSITIVO: DEVE LISTAR O CATÁLOGO DE LIVROS', () => {
     cy.api({
@@ -75,7 +75,7 @@ describe('GET - TESTES API (POSITIVOS) - HUB DE LEITURA', () => {
 
 });
 
-describe('POST - TESTE API (POSITIVOS) - HUB DE LEITURA', () => {
+describe('POST - TESTE API - HUB DE LEITURA', () => {
 
   it('CENÁRIO POSITIVO: DEVE ADICIONAR UM LIVRO.', () => {
 
@@ -99,22 +99,7 @@ describe('POST - TESTE API (POSITIVOS) - HUB DE LEITURA', () => {
     })
   });
 
-  it.only('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO JÁ EXISTENTE', () => {
-    cy.api({
-      method: 'POST',
-      url: 'books',
-      headers: { 'Authorization': token },
-      body: {
-
-
-      }
-    }).should(response => {
-      expect(response.status).to.equal(400)
-      expect(response.body).to.have.property('message')
-    })
-  });
-
-  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO SEM AUTORIZAÇÃO', () => {
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO JÁ EXISTENTE', () => {
     cy.api({
       method: 'POST',
       url: 'books',
@@ -124,33 +109,98 @@ describe('POST - TESTE API (POSITIVOS) - HUB DE LEITURA', () => {
         author: "José de Alencar",
         category: "Literatura Brasileira",
         total_copies: 2
-      }
+      },
+      failOnStatusCode: false
     }).should(response => {
-      expect(response.status).to.equal(403)
+      expect(response.status).to.equal(400)
+      expect(response.body).to.have.property('message')
+    })
+  });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO SEM TOKEN ', () => {
+    cy.api({
+      method: 'POST',
+      url: 'books',
+      headers: { 'Authorization': 'Bearer 588885558485855444' },
+      body: {
+        title: "Jardim de Iracema",
+        author: "José de Alencar",
+        category: "Literatura Brasileira",
+        total_copies: 2
+      },
+      failOnStatusCode: false
+    }).should(response => {
+      expect(response.status).to.equal(401)
+      expect(response.body).to.have.property('message')
+    })
+  });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ADICIONAR UM LIVRO SEM AUTORIZAÇÃO', () => {
+    cy.login('usuarioprimeiro@teste.com', 'user123').then((tknormal) => {
+
+      cy.api({
+        method: 'POST',
+        url: 'books',
+        headers: {
+          Authorization: `Bearer ${tknormal}`
+        },
+        body: {
+          title: "Jardim de Iracema",
+          author: "José de Alencar",
+          category: "Literatura Brasileira",
+          total_copies: 2
+        },
+        failOnStatusCode: false
+      })
+    }).should(response => {
+      expect(response.status).to.equal(401)
       expect(response.body).to.have.property('message')
     })
   });
 });
 
-describe('PUT - TESTE API (POSITIVOS) - HUB DE LEITURA', () => {
-  it('CENÁRIO POSITIVO: DEVE MODIFICAR UM LIVRO CADASTRADO', () => {
-
-    cy.criarLivro().then((livro) => {
-
-      cy.api({
-        method: 'PUT',
-        url: `books/${livro.id}`,
-        headers: { 'Authorization': token },
-        body: {
-          title: 'A Menina Que Roubava Livros',
-          author: 'Autor aleatorio',
-          category: 'Categoria aleatoria'
-        }
-      }).then(response => {
-        expect(response.status).to.equal(200)
-        expect(response.body).to.have.property('message')
-      })
+describe('PUT - TESTE API - HUB DE LEITURA', () => {
+  it('CENÁRIO POSITIVO: DEVE ATUALIZAR UM LIVRO COM SUCESSO.', () => {
+    cy.api({
+      method: 'PUT',
+      url: 'books/1',
+      headers: { 'Authorization': token },
+      body: {
+        "title": 'Livro Atualizado',
+        "author": 'Autor atualizado',
+        "category": 'categoria atualizada',
+        "total_copies": 2
+      }
+    }).should(response => {
+      expect(response.status).to.equal(200)
+      expect(response.body).to.have.property('message')
+      expect(response.body.bookId).to.eq(1)
     })
+  });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ATUALIZAR UM LIVRO SEM TOKEN', () => {
+
+    cy.api({
+      method: 'PUT',
+      url: 'books/1',
+      headers: { 'Authorization': ''},
+      body: {
+        "title": 'Livro Atualizado',
+        "author": 'Autor atualizado',
+        "category": 'categoria atualizada',
+        "total_copies": 2
+      },
+
+      failOnStatusCode: false
+    }).should(response => {
+      expect(response.status).to.equal(401)
+      expect(response.body).to.have.property('message')
+      expect(response.body.message).to.equal('Token de acesso necessário')
+    })
+  });
+
+  it('CENÁRIO NEGATIVO: DEVE FALHAR AO TENTAR ATUALIZAR UM LIVRO COM TOKEN COMUM', () => {
+    
   });
 });
 
