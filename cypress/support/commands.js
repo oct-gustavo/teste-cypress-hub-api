@@ -58,32 +58,33 @@ Cypress.Commands.add('login', (email, password) => {
         method: 'POST',
         url: 'login',
         body: {
-            email: 'usuarioprimeiro@teste.com',
-            password: 'user123'
+            email: email,
+            password: password
         }
     }).then(response => {
+
         expect(response.status).to.equal(200)
-        return response.body.token
+
+        Cypress.env('token', response.body.token)
     })
 })
 
-Cypress.Commands.add('criarLivro',
-    (livro = {}) => {
-        const dadosLivro = {
-            title: livro.title || "Livro aleatório",
-            author: livro.author || "Autor aleatório",
-            category: livro.category || "Categoria aleatória"
-        };
-        
-        return cy.api ({
-            method: 'POST',
-            url: 'books',
-            body: dadosLivro,
-            failOnStatusCode: false
-        }).then((response ) => {
-            expect(response.status).to.equal(201);
+Cypress.Commands.add('cadastrarLivro', () => {
+    cy.api({
+        method: 'POST',
+        url: 'books',
+        headers: {
+            Authorization: `Bearer ${Cypress.env('token')}`
+        },
+        body: {
+            title: 'Livro Teste',
+            author: 'Autor Teste',
+            genre: 'Ficção'
+        }
+    }).then(response => {
 
-            return response.body
-        })
-    }
-)
+        expect(response.status).to.equal(201)
+
+        return response.body.id
+    })
+})
